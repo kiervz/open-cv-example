@@ -1,82 +1,73 @@
 # import necessary packages
 import cv2
-import numpy as np
 
-blank = np.zeros((500, 500, 3), dtype='uint8')
-cv2.imshow('Blank', blank)
+# Read in an image
+image = cv2.imread('resources/images/cats.jpg')
+cv2.imshow('Read Image', image)
 
-# # 1. Paint the image a certain colour
-# blank[height, width]
-blank[0:500, 0:250] = (0,0,255)
-blank[0:500, 250:500] = (255,0,0)
-cv2.imshow('Red and Blue', blank)
+# Converting image to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+cv2.imshow('Grayscale', gray)
 
-# 2. Draw a rectangle
-# Link of sample output: http://www.learningaboutelectronics.com/images/Unfilled-rectangle-Python-OpenCV.png 
-# cv2.rectangle(blank, (250, 0), (0, 250), (0,255,0), thickness=2)
-# cv2.imshow('Rectangle', blank)
+# Blurring the image
+# applies a Gaussian blur to the image with a kernel size of 7x7
+blur = cv2.GaussianBlur(image, (7, 7), cv2.BORDER_DEFAULT)
+cv2.imshow('Blur', blur)
 
-# 3. Draw a circle
-# cv2.circle(blank, (250, 250), 50, (11, 225, 225), thickness=-1)
-# cv2.imshow('Circle', blank)
+# Edge Cascade
+# applies the Canny edge detection algorithm to the image with low and high thresholds of 125 and 175, respectively
+canny = cv2.Canny(image, 125, 175)
+cv2.imshow('Canny Edges', canny)
 
-# 4. Draw a line
-# cv2.line(blank, (0, 0), (250, 250), (255,255,255), thickness=3)
-# cv2.line(blank, (500, 0), (250, 250), (255,255,255), thickness=3)
-# cv2.line(blank, (250, 500), (250, 250), (255,255,255), thickness=3)
-# cv2.imshow('Line', blank)
+# Dilating the image
+# dilates the edges in the image with a kernel size of 7x7 and 3 iterations
+# what is iterations=3?
+# This means that the dilation operation is applied 3 times to the image, 
+# which increases the size of the white regions and fills in small gaps between edges
+dilated = cv2.dilate(canny, (7, 7), iterations=3)
+cv2.imshow('Dilated Image', dilated)
 
-# 5. Write text
-# cv2.putText(blank, 'Kamusta, mundo!', (100, 300), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (255,255,2), thickness=2)
-# cv2.imshow('Text', blank)
+# Eroding the image
+# erodes the edges in the image with a kernel size of 7x7 and 3 iterations
+eroded = cv2.erode(dilated, (7, 7), iterations=3)
+cv2.imshow('Eroded Image', eroded)
 
-# 6. Philippine Flag
-# define the vertices of the triangle
-pt1 = (0, 0)
-pt2 = (500, 0)
-pt3 = (250, 250)
+# Resizing the image
+# resizes the image to a width of 400 pixels and a height of 250 pixels 
+resized = cv2.resize(image, (400, 250), interpolation=cv2.INTER_AREA)
+cv2.imshow('Resized Image', resized)
 
-# draw the lines that connect the vertices
-cv2.line(blank, pt1, pt2, (225, 255, 255), thickness=2)
-cv2.line(blank, pt2, pt3, (225, 255, 255), thickness=2)
-cv2.line(blank, pt3, pt1, (225, 255, 255), thickness=2)
-
-# define the vertices of the filled triangle as an array
-pts = np.array([pt1, pt2, pt3], np.int32)
-
-# fill the triangle with yellow color
-cv2.fillPoly(blank, [pts], (225, 255, 255))
-cv2.imshow('Philippine Flag', blank)
-
-# 7. Draw 3 stars and a sun
-cv2.circle(blank, (250, 90), 40, (11, 225, 225), thickness=-1)
-cv2.imshow('Sun', blank)
-
-def createStar(xAxis = 250, yAxis = 250):
-    # define the center point of the star
-    center = (xAxis, yAxis)
-
-    # define the outer radius and inner radius of the star
-    outer_radius = 15
-    inner_radius = 5
-
-    # calculate the angles for the five points of the star
-    angles = np.linspace(0, 2*np.pi, 5, endpoint=False)
-
-    # calculate the coordinates for the outer and inner points of the star
-    outer_pts = np.array([(int(center[0] + outer_radius*np.cos(a)), int(center[1] + outer_radius*np.sin(a))) for a in angles], np.int32)
-    inner_pts = np.array([(int(center[0] + inner_radius*np.cos(a + np.pi/5)), int(center[1] + inner_radius*np.sin(a + np.pi/5))) for a in angles], np.int32)
-
-    # draw the lines connecting the points of the star
-    for i in range(5):
-        cv2.line(blank, outer_pts[i], inner_pts[i], (11, 225, 225), thickness=2)
-        cv2.line(blank, inner_pts[i], outer_pts[(i+1)%5], (11, 225, 225), thickness=2)
-
-    # display the resulting image
-    cv2.imshow('3 Stars', blank)
-
-createStar(250, 210)
-createStar(40, 20)
-createStar(460, 20)
+# Cropping the image
+# crops a rectangular region of the image with top-left coordinates (50, 200) 
+# and bottom-right coordinates (200, 400)
+cropped = image[50:200, 200:400]
+cv2.imshow('Cropped', cropped)
 
 cv2.waitKey(0)
+
+
+
+#### Notes: ####
+
+###### Canny image - A Canny image is a binary image that represents the edges in an original image, 
+# created using the Canny edge detection algorithm.
+# it's a popular edge detection algorithm due to its accuracy and ability to provide thin and continuous edges without false positives. 
+# The Canny image can be further processed or analyzed to extract important features from the original image.
+###### Dilated image - A dilated image is an image that has undergone a dilation operation, 
+# which is a basic morphological image processing technique that expands the bright regions (foreground) in an image.
+# The purpose of creating a dilated image is often to make it easier to identify and analyze objects or features in an image.
+###### Eroding Image - Eroding an image is a morphological operation that is used to remove small objects or thin out the boundaries of larger objects in an image.
+# Erosion is useful for noise reduction, separating overlapping objects, and separating objects that are too close together. 
+# The resulting eroded image can be further processed or analyzed to extract important information or features from the original image.
+
+###### Some of the interpolation you can use:
+###### INTER_AREA - Used for reducing the size of an image. 
+# It calculates the pixel value of the output image by averaging the pixel values of the input image. 
+# This method is a good choice when you need to preserve fine details.
+###### INTER_LINEAR - A commonly used method for resizing images. 
+# It uses a weighted average of the four closest pixels to determine the value of the output pixel. 
+# This method is good for general-purpose image resizing.
+###### INTER_CUBIC - Used for increasing the size of an image. 
+# It uses a bicubic interpolation method to determine the value of the output pixel, 
+# which means that it uses a weighted average of the 16 closest pixels to the output pixel. 
+# This method is a good choice when you need to upscale an image while preserving its fine details.
