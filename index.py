@@ -1,64 +1,88 @@
-# import necessary packages
-import cv2
+#pylint:disable=no-member
 
-# Read in an image
-image = cv2.imread('resources/images/cats.jpg')
-cv2.imshow('Read Image', image)
+import cv2 as cv
+import numpy as np
 
-# Converting image to grayscale
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-cv2.imshow('Grayscale', gray)
+image = cv.imread('resources/images/cats.jpg')
+cv.imshow('Cats', image)
 
-# Blurring the image
-# applies a Gaussian blur to the image with a kernel size of 7x7
-blur = cv2.GaussianBlur(image, (7, 7), cv2.BORDER_DEFAULT)
-cv2.imshow('Blur', blur)
+# Translation function that accepts an image and x,y values for translation
+def translate(image, x, y):
+    # Creating a 2x3 translation matrix to shift the image
+    transMat = np.float32([
+        [1, 0, x], 
+        [0, 1, y]
+    ])
+    # Storing the dimensions of the original image
+    dimensions = (image.shape[1], image.shape[0])
+    
+    # Applying the translation transformation to the image using the warpAffine function
+    # This creates a new image that has been translated by x and y pixels
+    translated_image = cv.warpAffine(image, transMat, dimensions)
+    
+    # Return the translated image
+    return translated_image
 
-# Edge Cascade
-# applies the Canny edge detection algorithm to the image with low and high thresholds of 125 and 175, respectively
-canny = cv2.Canny(image, 125, 175)
-cv2.imshow('Canny Edges', canny)
+# -x --> Left
+# -y --> Up
+# x --> Right
+# y --> Down
 
-# Dilating the image
-# dilates the edges in the image with a kernel size of 7x7 and 3 iterations
-# what is iterations=3?
-# This means that the dilation operation is applied 3 times to the image, 
-# which increases the size of the white regions and fills in small gaps between edges
-dilated = cv2.dilate(canny, (7, 7), iterations=3)
-cv2.imshow('Dilated Image', dilated)
+# Call the translate function with the original image and the x, y translation values
+translated = translate(image, 0, -50)
+cv.imshow('Translated', translated)
 
-# Eroding the image
-# erodes the edges in the image with a kernel size of 7x7 and 3 iterations
-eroded = cv2.erode(dilated, (7, 7), iterations=3)
-cv2.imshow('Eroded Image', eroded)
+# Rotation
+def rotate(image, angle, rotPoint=None):
+    (height,width) = image.shape[:2]
+    
+    # If rotation point is not specified, set it to the center of the image
+    if rotPoint is None:
+        # The double forward slash (//) operator is used in Python to perform integer division.
+        rotPoint = (width//2,height//2)
+    
+    # Get the rotation matrix for the given angle and rotation point
+    # the third argument 1.0 is a scale factor
+    rotMat = cv.getRotationMatrix2D(rotPoint, angle, 1.0)
+    
+    # Set the dimensions for the output image
+    dimensions = (width,height)
 
-# Resizing the image
-# resizes the image to a width of 400 pixels and a height of 250 pixels 
-resized = cv2.resize(image, (400, 250), interpolation=cv2.INTER_AREA)
-cv2.imshow('Resized Image', resized)
+    # Apply the rotation to the image using the warpAffine function
+    rotated_image = cv.warpAffine(image, rotMat, dimensions)
+    
+    # Return the rotated image
+    return rotated_image
 
-# Cropping the image
-# crops a rectangular region of the image with top-left coordinates (50, 200) 
-# and bottom-right coordinates (200, 400)
-cropped = image[50:200, 200:400]
-cv2.imshow('Cropped', cropped)
+rotated = rotate(image, 45)
+cv.imshow('Rotated 45 degree', rotated)
 
-cv2.waitKey(0)
+rotated_rotated = rotate(image, 90)
+cv.imshow('Rotated Rotated 90 degree', rotated_rotated)
+
+# Resizing
+# resize the image to (250,300) using the INTER_CUBIC interpolation method
+resized = cv.resize(image, (250,300), interpolation=cv.INTER_CUBIC)
+# display the resized image
+cv.imshow('Resized', resized)
+
+# Flipping
+# Flipcode:
+# 0 - flip vertically (i.e. around the x-axis)
+# 1 - flip horizontally (i.e. around the y-axis)
+# -1 - flip both vertically and horizontally (i.e. around both axes)
+flip = cv.flip(image, -1)
+cv.imshow('Flip', flip)
+
+# Cropping
+# Selects a specific rectangular region in the image, starting from the top-left pixel at row 200 
+# and column 300, and ending at the bottom-right pixel at row 400 and column 400.
+cropped = image[200:400, 300:400]
+cv.imshow('Cropped', cropped)
 
 
+cv.waitKey(0)
 
-#### Notes: ####
-
-###### Canny image - A Canny image is a binary image that represents the edges in an original image, 
-# created using the Canny edge detection algorithm.
-# it's a popular edge detection algorithm due to its accuracy and ability to provide thin and continuous edges without false positives. 
-# The Canny image can be further processed or analyzed to extract important features from the original image.
-###### Dilated image - A dilated image is an image that has undergone a dilation operation, 
-# which is a basic morphological image processing technique that expands the bright regions (foreground) in an image.
-# The purpose of creating a dilated image is often to make it easier to identify and analyze objects or features in an image.
-###### Eroding Image - Eroding an image is a morphological operation that is used to remove small objects or thin out the boundaries of larger objects in an image.
-# Erosion is useful for noise reduction, separating overlapping objects, and separating objects that are too close together. 
-# The resulting eroded image can be further processed or analyzed to extract important information or features from the original image.
 
 ###### Some of the interpolation you can use:
 ###### INTER_AREA - Used for reducing the size of an image. 
