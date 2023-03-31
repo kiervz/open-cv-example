@@ -1,28 +1,20 @@
-# import necessary packages
-import argparse
-import cv2
+import cv2 as cv
 
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-    help="path to input image")
-ap.add_argument("-n", "--name", required=True,
-    help="new name of image")
-args = vars(ap.parse_args())
+group = cv.imread('resources/images/group1.jpg')
+cv.imshow('Group of people', group)
 
-# load the image from disk via "cv2.imread" and then grab the spatial
-# dimensions, including width, height, and number of channels.
-# Note: In Open CV images are represented as numpy arrays
-image = cv2.imread(args["image"])
-(h, w, c) = image.shape[:3]
+group_gray = cv.cvtColor(group, cv.COLOR_BGR2GRAY)
+cv.imshow('Group of people Gray', group_gray)
 
-# display the image width, height and number of channels to our 
-# terminal
-print("width: {} pixels".format(w))
-print("height: {} pixels".format(h))
-print("channels: {} pixels".format(c))
+haar_cascade = cv.CascadeClassifier('./resources/data/haar_face.xml')
 
-# show the image and wait for a keypress
-cv2.imshow("PySearch", image)
-# waitKey is just a pause, it's a waiting for user input
-cv2.waitKey(0)
+faces_rect = haar_cascade.detectMultiScale(group_gray, scaleFactor=1.1, minNeighbors=1)
+
+print(f'Number of faces found: {len(faces_rect)}')
+
+for (x, y, w, h) in faces_rect:
+    cv.rectangle(group, (x, y), (x+w, y+h), (0, 255, 0), thickness=2)
+    
+cv.imshow('Detected Faces', group)
+
+cv.waitKey(0)
