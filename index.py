@@ -1,97 +1,73 @@
-#pylint:disable=no-member
-
-import cv2 as cv
+# Importing necessary libraries
+import cv2
 import numpy as np
 
-image = cv.imread('resources/images/cats.jpg')
-cv.imshow('Cats', image)
+# Reading the image file
+image = cv2.imread('resources/images/cats.jpg')
+# Displaying the original image
+cv2.imshow('Cats', image)
 
-# Translation function that accepts an image and x,y values for translation
-def translate(image, x, y):
-    # Creating a 2x3 translation matrix to shift the image
-    transMat = np.float32([
-        [1, 0, x], 
-        [0, 1, y]
-    ])
-    # Storing the dimensions of the original image
-    dimensions = (image.shape[1], image.shape[0])
-    
-    # Applying the translation transformation to the image using the warpAffine function
-    # This creates a new image that has been translated by x and y pixels
-    translated_image = cv.warpAffine(image, transMat, dimensions)
-    
-    # Return the translated image
-    return translated_image
+# Creating a blank image with the same dimensions as the original image
+blank = np.zeros(image.shape, dtype='uint8')
+# Displaying the blank image
+cv2.imshow('Blank', blank)
 
-# -x --> Left
-# -y --> Up
-# x --> Right
-# y --> Down
+# Converting the original image to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+# Displaying the grayscale image
+cv2.imshow('Gray', gray)
 
-# Call the translate function with the original image and the x, y translation values
-translated = translate(image, 0, -50)
-cv.imshow('Translated', translated)
+# Applying Gaussian blur to the grayscale image
+blur = cv2.GaussianBlur(gray, (5,5), cv2.BORDER_DEFAULT)
+# Displaying the blurred image
+cv2.imshow('Blur', blur)
 
-# Rotation
-def rotate(image, angle, rotPoint=None):
-    (height,width) = image.shape[:2]
-    
-    # If rotation point is not specified, set it to the center of the image
-    if rotPoint is None:
-        # The double forward slash (//) operator is used in Python to perform integer division.
-        rotPoint = (width//2,height//2)
-    
-    # Get the rotation matrix for the given angle and rotation point
-    # the third argument 1.0 is a scale factor
-    rotMat = cv.getRotationMatrix2D(rotPoint, angle, 1.0)
-    
-    # Set the dimensions for the output image
-    dimensions = (width,height)
+# Detecting edges using Canny edge detection
+canny = cv2.Canny(blur, 125, 175)
+# Displaying the detected edges
+cv2.imshow('Canny Edges', canny)
 
-    # Apply the rotation to the image using the warpAffine function
-    rotated_image = cv.warpAffine(image, rotMat, dimensions)
-    
-    # Return the rotated image
-    return rotated_image
+# Applying thresholding to the grayscale image
+# Note:
+# cv.threshold() - This function is used to convert a grayscale image into a binary image.
+# 125 - Is the threshold value. And 255 is the maximum value.
+# cv2.THRESH_BINARY - Is a type of thresholding method. 
+# The cv.THRESH_BINARY method sets all pixels with a value greater than
+# the threshold to the maximum value of 255, and all other pixels to 0.
+ret, thresh = cv2.threshold(gray, 125, 255, cv2.THRESH_BINARY)
+# Displaying the thresholded image
+cv2.imshow('Thresh', thresh)
 
-rotated = rotate(image, 45)
-cv.imshow('Rotated 45 degree', rotated)
+# Finding the contours in the Canny edge-detected image
+# cv2.RETR_LIST - specifies the retrieval mode of the contours. 
+# It indicates that all the contours should be retrieved and stored in a list.
+# cv2.CHAIN_APPROX_SIMPLE - is the contour approximation method. 
+# It approximates the contours' shapes by removing any unnecessary points to reduce the storage required. 
+# The contours' shapes are stored as a list of boundary points.
+contours, hierarchies = cv2.findContours(canny, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+# Printing the number of contours found
+print(f'{len(contours)} contour(s) found!')
 
-rotated_rotated = rotate(image, 90)
-cv.imshow('Rotated Rotated 90 degree', rotated_rotated)
+# Drawing the contours on the blank image
+# Note: 
+# blank - The image on which the contours will be drawn.
+# contours - The contours that will be drawn on the image.
+# -1 - Is the index of the contour to be drawn. A value of -1 means that all the contours will be drawn.
+# 1 - Is the thickness of the contour line in pixels.
+cv2.drawContours(blank, contours, -1, (0, 0, 255), 1)
+# Displaying the image with the contours drawn
+cv2.imshow('Contours Drawn', blank)
 
-# Resizing
-# resize the image to (250,300) using the INTER_CUBIC interpolation method
-resized = cv.resize(image, (250,300), interpolation=cv.INTER_CUBIC)
-# display the resized image
-cv.imshow('Resized', resized)
-
-# Flipping
-# Flipcode:
-# 0 - flip vertically (i.e. around the x-axis)
-# 1 - flip horizontally (i.e. around the y-axis)
-# -1 - flip both vertically and horizontally (i.e. around both axes)
-flip = cv.flip(image, -1)
-cv.imshow('Flip', flip)
-
-# Cropping
-# Selects a specific rectangular region in the image, starting from the top-left pixel at row 200 
-# and column 300, and ending at the bottom-right pixel at row 400 and column 400.
-cropped = image[200:400, 300:400]
-cv.imshow('Cropped', cropped)
+# Waiting for any key press to close all windows
+cv2.waitKey(0)
 
 
-cv.waitKey(0)
+#### Notes: ####
 
-
-###### Some of the interpolation you can use:
-###### INTER_AREA - Used for reducing the size of an image. 
-# It calculates the pixel value of the output image by averaging the pixel values of the input image. 
-# This method is a good choice when you need to preserve fine details.
-###### INTER_LINEAR - A commonly used method for resizing images. 
-# It uses a weighted average of the four closest pixels to determine the value of the output pixel. 
-# This method is good for general-purpose image resizing.
-###### INTER_CUBIC - Used for increasing the size of an image. 
-# It uses a bicubic interpolation method to determine the value of the output pixel, 
-# which means that it uses a weighted average of the 16 closest pixels to the output pixel. 
-# This method is a good choice when you need to upscale an image while preserving its fine details.
+###### Canny image - A Canny image is a binary image that represents the edges in an original image, 
+# created using the Canny edge detection algorithm.
+# it's a popular edge detection algorithm due to its accuracy and ability to provide thin and 
+# continuous edges without false positives. 
+# The Canny image can be further processed or analyzed to extract important features from the original image.
+###### Contour - Contour is like drawing the shape of something you see in a picture.
+# In this case, the computer is tracing the outline of the cats in the picture so that we can see their shapes better.
