@@ -45,7 +45,7 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "teddy bear", "hair drier", "toothbrush"]
 
 # Load the mask image
-mask = cv2.imread('mask.png')
+mask = cv2.imread('./images/mask.png')
 
 # Create a SORT tracker
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
@@ -78,7 +78,7 @@ while True:
     # Load the graphic image
     # the cv2.IMREAD_UNCHANGED flag ensures that the original image data, including
     # any transparency information, is preserved when reading the image with OpenCV.
-    imageGraphic = cv2.imread('./graphics.png', cv2.IMREAD_UNCHANGED)
+    imageGraphic = cv2.imread('./images/graphics.png', cv2.IMREAD_UNCHANGED)
 
     # Overlay the graphic image onto the frame
     img = cvzone.overlayPNG(img, imageGraphic, (0, 0))
@@ -167,7 +167,7 @@ while True:
     # If issave argument is equal to true, save each frame
     if args['issave'] == 'true':
         # Save current frame as a JPEG image
-        frame_path = f'./images/frame_{frame_num:06d}.jpg'
+        frame_path = f'./images/data/frame_{frame_num:06d}.jpg'
         cv2.imwrite(frame_path, img)
 
         # Increment frame counter
